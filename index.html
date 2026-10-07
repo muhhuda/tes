@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Petualangan Detektif Materi - IPAS Kelas 4</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%);
+            min-height: 100vh;
+            color: #f8fafc;
+            user-select: none;
+        }
+        .font-game {
+            font-family: 'Fredoka', cursive;
+        }
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.75);
+            backdrop-filter: blur(16px);
+            border: 2px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+        }
+        .btn-bounce {
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .btn-bounce:hover {
+            transform: scale(1.05) translateY(-3px);
+        }
+        .btn-bounce:active {
+            transform: scale(0.96) translateY(1px);
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(2deg); }
+        }
+        .animate-float {
+            animation: float 4s ease-in-out infinite;
+        }
+        @keyframes pulse-glow {
+            0%, 100% { filter: drop-shadow(0 0 15px rgba(245, 158, 11, 0.6)); }
+            50% { filter: drop-shadow(0 0 25px rgba(245, 158, 11, 0.9)); }
+        }
+        .animate-glow {
+            animation: pulse-glow 2.5s infinite;
+        }
+        /* Custom scale tilt animation */
+        .scale-left-heavy {
+            transform: rotate(-12deg);
+            transform-origin: center 70px;
+            transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .scale-right-heavy {
+            transform: rotate(12deg);
+            transform-origin: center 70px;
+            transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen justify-between items-center p-3 sm:p-6 overflow-x-hidden">
+
+    <!-- Top Bar Navigation -->
+    <header class="w-full max-w-4xl flex items-center justify-between mb-4 glass-panel rounded-2xl p-4 border border-amber-500/20">
+        <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-xl bg-amber-500/20 border border-amber-400 flex items-center justify-center text-amber-400 text-2xl font-game animate-float">
+                🕵️‍♂️
+            </div>
+            <div>
+                <h1 class="font-game text-xl sm:text-2xl text-amber-400 leading-tight">Detektif IPAS</h1>
+                <p class="text-xs text-slate-400">Misi 1: Materi, Massa & Volume</p>
+            </div>
+        </div>
+        
+        <!-- Score & Sound Control -->
+        <div class="flex items-center gap-3">
+            <div class="bg-slate-800/80 border border-slate-700 px-4 py-2 rounded-xl flex items-center gap-2">
+                <i class="fa-solid fa-star text-amber-400 text-lg"></i>
+                <span id="score-display" class="font-game text-xl text-amber-300">0</span>
+                <span class="text-xs text-slate-400">Poin</span>
+            </div>
+            <button id="sound-btn" onclick="toggleSound()" class="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300 hover:text-amber-400 transition">
+                <i id="sound-icon" class="fa-solid fa-volume-high"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Game Viewport Container -->
+    <main class="w-full max-w-4xl flex-1 flex flex-col justify-center items-center relative my-2">
+        
+        <!-- START SCREEN -->
+        <div id="start-screen" class="w-full glass-panel rounded-3xl p-6 sm:p-10 text-center flex flex-col items-center">
+            <div class="relative mb-6">
+                <div class="w-28 h-28 sm:w-36 sm:h-36 rounded-full bg-gradient-to-tr from-amber-500 to-indigo-600 p-1 animate-glow">
+                    <div class="w-full h-full rounded-full bg-slate-900 flex items-center justify-center text-6xl sm:text-7xl">
+                        🕵️‍♂️
+                    </div>
+                </div>
+                <span class="absolute -bottom-2 -right-2 bg-indigo-600 text-white font-game text-xs px-3 py-1 rounded-full border border-indigo-400 shadow-lg">
+                    Level Kelas 4
+                </span>
+            </div>
+
+            <h2 class="font-game text-3xl sm:text-5xl text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-400 to-orange-400 mb-3">
+                Petualangan Detektif Materi!
+            </h2>
+            <p class="text-slate-300 text-sm sm:text-base max-w-xl mb-8 leading-relaxed">
+                Halo Calon Detektif Cilik! Bantu <span class="text-amber-400 font-bold">Detektif Rio</span> memecahkan 5 Rahasia Sains tentang <span class="text-sky-300 font-semibold">Materi, Massa, dan Volume</span>. Kumpulkan Kunci Rahasia untuk menjadi Master Detektif!
+            </p>
+
+            <button onclick="startGame()" class="btn-bounce bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-game text-xl sm:text-2xl px-10 py-4 rounded-2xl shadow-lg shadow-orange-500/30 flex items-center gap-3 border-2 border-amber-300">
+                <i class="fa-solid fa-play"></i> MULAI PETUALANGAN
+            </button>
+        </div>
+
+        <!-- PLAY SCREEN -->
+        <div id="play-screen" class="w-full glass-panel rounded-3xl p-5 sm:p-8 flex flex-col justify-between hidden min-h-[520px]">
+            
+            <!-- Progress Bar & Stage Indicator -->
+            <div class="w-full mb-4">
+                <div class="flex justify-between items-center text-xs font-semibold mb-2 text-slate-400">
+                    <span id="stage-badge" class="bg-indigo-900/80 text-indigo-300 px-3 py-1 rounded-lg border border-indigo-700/50">Misi 1 dari 5</span>
+                    <span id="progress-percent" class="text-amber-400 font-game">20% Selesai</span>
+                </div>
+                <div class="w-full h-3 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
+                    <div id="progress-bar" class="h-full bg-gradient-to-r from-amber-500 to-orange-400 transition-all duration-500 rounded-full" style="width: 20%"></div>
+                </div>
+            </div>
+
+            <!-- Question Story Header -->
+            <div class="bg-slate-900/60 rounded-2xl p-4 border border-slate-700/60 mb-4 flex items-start gap-4">
+                <div class="text-3xl sm:text-4xl bg-slate-800 p-2 rounded-xl border border-slate-700 shrink-0" id="stage-icon">
+                    🔎
+                </div>
+                <div>
+                    <h3 id="stage-title" class="font-game text-amber-300 text-lg sm:text-xl mb-1">Judul Tantangan</h3>
+                    <p id="stage-desc" class="text-slate-200 text-xs sm:text-sm leading-relaxed">Penjelasan tantangan akan muncul di sini.</p>
+                </div>
+            </div>
+
+            <!-- Dynamic Interactive Visual Canvas Area -->
+            <div id="visual-interactive-container" class="w-full bg-slate-950/80 border border-slate-800 rounded-2xl p-4 mb-6 min-h-[180px] flex items-center justify-center relative overflow-hidden">
+                <!-- Dynamic SVG Graphics inserted by JavaScript per stage -->
+            </div>
+
+            <!-- Options & Interaction Grid -->
+            <div id="options-container" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                <!-- Option Buttons loaded dynamically -->
+            </div>
+
+            <!-- Feedback Modal/Overlay (Hidden by default) -->
+            <div id="feedback-overlay" class="hidden absolute inset-0 bg-slate-950/90 backdrop-blur-md rounded-3xl p-6 flex flex-col items-center justify-center text-center z-20">
+                <div id="feedback-icon" class="text-6xl mb-3">🎉</div>
+                <h3 id="feedback-title" class="font-game text-2xl sm:text-3xl text-amber-400 mb-2">Jawaban Tepat!</h3>
+                <p id="feedback-text" class="text-slate-300 text-sm max-w-md mb-6 leading-relaxed">Penjelasan ilmiah lengkap di sini.</p>
+                <button id="next-stage-btn" onclick="nextStage()" class="btn-bounce bg-amber-500 hover:bg-amber-400 text-slate-950 font-game text-lg px-8 py-3 rounded-xl shadow-lg flex items-center gap-2">
+                    Lanjut Misi Berikutnya <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- END SCREEN (CERTIFICATE) -->
+        <div id="end-screen" class="w-full glass-panel rounded-3xl p-6 sm:p-10 text-center flex flex-col items-center hidden">
+            <div class="text-6xl mb-4 animate-bounce">🏆</div>
+            <h2 class="font-game text-3xl sm:text-4xl text-amber-400 mb-2">MISI HAMPIR SELESAI!</h2>
+            <p class="text-slate-300 text-sm sm:text-base max-w-md mb-6">
+                Selamat! Kamu telah menyelesaikan semua teka-teki Detektif IPAS dengan sangat baik.
+            </p>
+
+            <!-- Score Summary Card -->
+            <div class="w-full max-w-md bg-slate-900/90 border-2 border-amber-500/40 rounded-2xl p-6 mb-6 text-center">
+                <p class="text-xs text-slate-400 uppercase tracking-widest mb-1">Sertifikat Kelulusan</p>
+                <h3 class="font-game text-2xl text-amber-300 mb-3" id="final-badge-title">MASTER DETEKTIF MATERI</h3>
+                <div class="flex justify-center gap-2 text-3xl text-amber-400 mb-4" id="star-rating">
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                </div>
+                <div class="text-4xl font-game text-white mb-1">
+                    <span id="final-score">100</span> <span class="text-base text-slate-400">/ 100 Poin</span>
+                </div>
+                <p class="text-xs text-emerald-400 font-semibold" id="final-verdict">Luar biasa! Kamu memahami Materi, Massa, & Volume!</p>
+            </div>
+
+            <div class="flex flex-wrap gap-4 justify-center">
+                <button onclick="restartGame()" class="btn-bounce bg-amber-500 hover:bg-amber-400 text-slate-950 font-game text-lg px-8 py-3 rounded-xl flex items-center gap-2 shadow-lg">
+                    <i class="fa-solid fa-rotate-right"></i> Main Lagi
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer Info -->
+    <footer class="text-center text-xs text-slate-500 py-2">
+        IPAS Kelas 4 Sekolah Dasar • Media Pembelajaran Interaktif Daring
+    </footer>
+
+    <script>
+        // Web Audio API Synthesizer Sound System (No external audio file dependencies)
+        let audioCtx = null;
+        let soundEnabled = true;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            initAudio();
+            if (!audioCtx) return;
+
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'click') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.exponentialRampToValueAtTime(800, now + 0.05);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+                osc.start(now);
+                osc.stop(now + 0.05);
+            } else if (type === 'correct') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(523.25, now); // C5
+                osc.frequency.setValueAtTime(659.25, now + 0.1); // E5
+                osc.frequency.setValueAtTime(783.99, now + 0.2); // G5
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                osc.start(now);
+                osc.stop(now + 0.4);
+            } else if (type === 'wrong') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.setValueAtTime(180, now + 0.15);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                osc.start(now);
+                osc.stop(now + 0.3);
+            } else if (type === 'win') {
+                // Fanfare melody
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, idx) => {
+                    const o = audioCtx.createOscillator();
+                    const g = audioCtx.createGain();
+                    o.connect(g);
+                    g.connect(audioCtx.destination);
+                    o.frequency.setValueAtTime(freq, now + idx * 0.12);
+                    g.gain.setValueAtTime(0.25, now + idx * 0.12);
+                    g.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.12 + 0.25);
+                    o.start(now + idx * 0.12);
+                    o.stop(now + idx * 0.12 + 0.25);
+                });
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const icon = document.getElementById('sound-icon');
+            if (soundEnabled) {
+                icon.className = 'fa-solid fa-volume-high';
+                playSound('click');
+            } else {
+                icon.className = 'fa-solid fa-volume-xmark text-red-400';
+            }
+        }
+
+        // Game State Variables
+        let currentStage = 0;
+        let score = 0;
+
+        // Stage Data Definitions
+        const stages = [
+            {
+                badge: "Misi 1 dari 5",
+                percent: "20%",
+                icon: "🔦",
+                title: "Tantangan 1: Mana yang MATERI?",
+                desc: "Detektif Rio menemukan 4 barang di ruang lab. Pilih benda yang BUKAN materi! (Ingat: Bukan materi artinya TIDAK punya massa/berat dan TIDAK menempati ruang).",
+                visualType: "materi-grid",
+                options: [
+                    { text: "📘 Buku Tulis", isCorrect: false },
+                    { text: "🥛 Air dalam Gelas", isCorrect: false },
+                    { text: "💡 Cahaya Lampu", isCorrect: true },
+                    { text: "🎈 Udara di Balon", isCorrect: false }
+                ],
+                explanation: "Tepat sekali! Cahaya lampu BUKAN MATERI karena cahaya adalah bentuk energi. Cahaya tidak memiliki massa (tidak bisa ditimbang) dan tidak menempati ruang."
+            },
+            {
+                badge: "Misi 2 dari 5",
+                percent: "40%",
+                icon: "⚖️",
+                title: "Tantangan 2: Teka-Teki Massa!",
+                desc: "Pak Guru menimbang 1 Batu Kecil dan 1 Spons Busa Besar pada timbangan. Timbangan miring ke arah Batu Kecil!",
+                visualType: "scale-simulation",
+                options: [
+                    { text: "Batu Kecil massanya lebih BESAR daripada Spons", isCorrect: true },
+                    { text: "Spons Besar massanya lebih berat dari Batu", isCorrect: false },
+                    { text: "Batu dan Spons memiliki massa yang persis sama", isCorrect: false },
+                    { text: "Batu kecil tidak punya massa sama sekali", isCorrect: false }
+                ],
+                explanation: "Hebat! Meskipun ukuran fisik batu lebih kecil, batu memiliki zat penyusun (MASSA) yang lebih padat sehingga lebih berat daripada spons yang berongga."
+            },
+            {
+                badge: "Misi 3 dari 5",
+                percent: "60%",
+                icon: "🎈",
+                title: "Tantangan 3: Rahasia Volume Balon",
+                desc: "Balon yang tadinya kempes ditiup oleh Detektif Rio hingga menjadi sangat besar menggelembung.",
+                visualType: "balloon-simulation",
+                options: [
+                    { text: "Udara mengisi RUANG (VOLUME) di dalam balon", isCorrect: true },
+                    { text: "Udara membuat balon berubah menjadi batu", isCorrect: false },
+                    { text: "Balon bertambah besar karena berubah jadi air", isCorrect: false },
+                    { text: "Udara tidak membutuhkan tempat sama sekali", isCorrect: false }
+                ],
+                explanation: "Pintar! Udara adalah materi berwujud gas. Udara masuk ke dalam balon dan MENGISI RUANG. Besarnya ruang yang diisi ini disebut VOLUME."
+            },
+            {
+                badge: "Misi 4 dari 5",
+                percent: "80%",
+                icon: "🧪",
+                title: "Tantangan 4: Gelas Air yang Meluap",
+                desc: "Gelas ukur berisi air 150 mL. Ketika batu dimasukkan ke dalam gelas, permukaan air naik menjadi 200 mL!",
+                visualType: "displacement-simulation",
+                options: [
+                    { text: "Air bertambah karena batu menghasilkan air baru", isCorrect: false },
+                    { text: "Batu mengambil tempat/ruang (VOLUME) air", isCorrect: true },
+                    { text: "Batu menyerap air sehingga air membesar", isCorrect: false },
+                    { text: "Volume air berkurang menjadi lebih sedikit", isCorrect: false }
+                ],
+                explanation: "Luar biasa! Dua benda tidak bisa menempati ruang yang sama di saat bersamaan. Batu masuk dan mengambil tempat (volume) air, sehingga air terdorong ke atas!"
+            },
+            {
+                badge: "Misi 5 dari 5",
+                percent: "100%",
+                icon: "📦",
+                title: "Tantangan 5: Kapas vs Besi",
+                desc: "Ibu membeli 1 kg Kapas (butuh kantong plastik raksasa) dan 1 kg Besi (cukup plastik kecil). Pernyataan yang BENAR adalah...",
+                visualType: "cotton-iron-simulation",
+                options: [
+                    { text: "Massa besi lebih berat daripada 1 kg kapas", isCorrect: false },
+                    { text: "Massa keduanya SAMA, tetapi volume KAPAS lebih besar", isCorrect: true },
+                    { text: "Volume besi jauh lebih besar daripada kapas", isCorrect: false },
+                    { text: "Kapas tidak punya massa dan volume", isCorrect: false }
+                ],
+                explanation: "Bintang lima! Massanya SAMA-SAMA 1 kg (sama beratnya pada timbangan), namun KAPAS membutuhkan ruang/tempat (VOLUME) yang jauh lebih luas."
+            }
+        ];
+
+        function startGame() {
+            playSound('click');
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('end-screen').classList.add('hidden');
+            document.getElementById('play-screen').classList.remove('hidden');
+            currentStage = 0;
+            score = 0;
+            updateScoreUI();
+            loadStage(currentStage);
+        }
+
+        function loadStage(index) {
+            const data = stages[index];
+            
+            // Close feedback overlay if open
+            document.getElementById('feedback-overlay').classList.add('hidden');
+
+            // Update Progress & Badges
+            document.getElementById('stage-badge').innerText = data.badge;
+            document.getElementById('progress-percent').innerText = data.percent + " Selesai";
+            document.getElementById('progress-bar').style.width = data.percent;
+            
+            // Stage Story Content
+            document.getElementById('stage-icon').innerText = data.icon;
+            document.getElementById('stage-title').innerText = data.title;
+            document.getElementById('stage-desc').innerText = data.desc;
+
+            // Render Dynamic Interactive Visual SVG Graphics
+            renderVisualCanvas(data.visualType);
+
+            // Render Options Buttons
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            data.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "btn-bounce bg-slate-800/90 hover:bg-slate-700/90 border border-slate-700/80 hover:border-amber-400 text-slate-100 p-4 rounded-xl text-left text-sm sm:text-base font-semibold transition flex items-center justify-between group";
+                btn.onclick = () => selectOption(opt.isCorrect, data.explanation);
+                
+                btn.innerHTML = `
+                    <span>${opt.text}</span>
+                    <div class="w-7 h-7 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center text-xs text-amber-400 group-hover:bg-amber-500 group-hover:text-slate-950 font-game shrink-0 ml-2">
+                        ${String.fromCharCode(65 + idx)}
+                    </div>
+                `;
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function renderVisualCanvas(type) {
+            const container = document.getElementById('visual-interactive-container');
+            
+            if (type === 'materi-grid') {
+                container.innerHTML = `
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full max-w-lg text-center">
+                        <div class="bg-slate-900/90 p-3 rounded-xl border border-slate-800 flex flex-col items-center">
+                            <span class="text-3xl mb-1">📘</span>
+                            <span class="text-xs text-slate-300 font-bold">Buku</span>
+                        </div>
+                        <div class="bg-slate-900/90 p-3 rounded-xl border border-slate-800 flex flex-col items-center">
+                            <span class="text-3xl mb-1">🥛</span>
+                            <span class="text-xs text-slate-300 font-bold">Air Gelas</span>
+                        </div>
+                        <div class="bg-slate-900/90 p-3 rounded-xl border border-amber-500/50 flex flex-col items-center animate-pulse">
+                            <span class="text-3xl mb-1">💡</span>
+                            <span class="text-xs text-amber-300 font-bold">Cahaya Lampu</span>
+                        </div>
+                        <div class="bg-slate-900/90 p-3 rounded-xl border border-slate-800 flex flex-col items-center">
+                            <span class="text-3xl mb-1">🎈</span>
+                            <span class="text-xs text-slate-300 font-bold">Udara Balon</span>
+                        </div>
+                    </div>
+                `;
+            } else if (type === 'scale-simulation') {
+                container.innerHTML = `
+                    <div class="flex flex-col items-center w-full max-w-md">
+                        <!-- Balance SVG -->
+                        <svg class="w-64 h-36 scale-left-heavy" viewBox="0 0 300 180" fill="none">
+                            <!-- Stand base -->
+                            <rect x="140" y="110" width="20" height="60" fill="#475569" rx="4"/>
+                            <polygon points="110,170 190,170 170,140 130,140" fill="#334155"/>
+                            <circle cx="150" cy="70" r="10" fill="#94a3b8"/>
+                            <!-- Balance Beam -->
+                            <rect x="30" y="65" width="240" height="10" rx="5" fill="#cbd5e1"/>
+                            
+                            <!-- Left Pan (Batu Kecil) -->
+                            <line x1="45" y1="70" x2="45" y2="120" stroke="#94a3b8" stroke-width="2"/>
+                            <line x1="95" y1="70" x2="45" y2="120" stroke="#94a3b8" stroke-width="2"/>
+                            <ellipse cx="45" cy="120" rx="35" ry="8" fill="#64748b"/>
+                            <!-- Batu Item -->
+                            <path d="M 35 115 Q 40 100 55 105 Q 60 115 45 120 Z" fill="#334155" stroke="#94a3b8" stroke-width="2"/>
+                            <text x="45" y="95" text-anchor="middle" fill="#f59e0b" font-size="10" font-weight="bold">Batu (Berat)</text>
+
+                            <!-- Right Pan (Spons Besar) -->
+                            <line x1="205" y1="70" x2="255" y2="120" stroke="#94a3b8" stroke-width="2"/>
+                            <line x1="255" y1="70" x2="255" y2="120" stroke="#94a3b8" stroke-width="2"/>
+                            <ellipse cx="255" cy="120" rx="35" ry="8" fill="#64748b"/>
+                            <!-- Spons Item -->
+                            <rect x="230" y="90" width="50" height="28" fill="#fde047" rx="4" stroke="#eab308" stroke-width="2"/>
+                            <circle cx="240" cy="100" r="2" fill="#ca8a04"/>
+                            <circle cx="260" cy="108" r="3" fill="#ca8a04"/>
+                            <text x="255" y="82" text-anchor="middle" fill="#cbd5e1" font-size="10">Spons (Ringan)</text>
+                        </svg>
+                    </div>
+                `;
+            } else if (type === 'balloon-simulation') {
+                container.innerHTML = `
+                    <div class="flex items-center gap-8">
+                        <div class="flex flex-col items-center">
+                            <div class="w-8 h-10 bg-red-500 rounded-full border border-red-300 opacity-60 flex items-center justify-center text-xs">kempes</div>
+                            <span class="text-xs text-slate-400 mt-2">Sebelum</span>
+                        </div>
+                        <div class="text-amber-400 text-2xl font-game">➡️ Ditiup ➡️</div>
+                        <div class="flex flex-col items-center">
+                            <div class="w-24 h-28 bg-gradient-to-tr from-red-600 to-pink-500 rounded-full border-2 border-red-300 flex items-center justify-center font-game text-xs shadow-lg shadow-red-500/30 animate-bounce">
+                                Ruang Udara!
+                            </div>
+                            <span class="text-xs text-amber-300 font-bold mt-2">Volume Membesar</span>
+                        </div>
+                    </div>
+                `;
+            } else if (type === 'displacement-simulation') {
+                container.innerHTML = `
+                    <div class="flex items-center gap-6">
+                        <!-- Beaker 1 -->
+                        <div class="flex flex-col items-center">
+                            <div class="w-20 h-32 border-2 border-slate-400 border-t-0 rounded-b-xl relative bg-slate-900/50 flex flex-col justify-end p-1">
+                                <div class="w-full h-1/2 bg-sky-500/50 border-t-2 border-sky-300 rounded-b-lg flex items-center justify-center text-xs font-bold">150 mL</div>
+                            </div>
+                            <span class="text-xs text-slate-400 mt-2">Sebelum Batu</span>
+                        </div>
+                        <div class="text-2xl text-amber-400">➕ 🪨 ➡️</div>
+                        <!-- Beaker 2 -->
+                        <div class="flex flex-col items-center">
+                            <div class="w-20 h-32 border-2 border-amber-400 border-t-0 rounded-b-xl relative bg-slate-900/50 flex flex-col justify-end p-1">
+                                <!-- Water raised -->
+                                <div class="w-full h-3/4 bg-sky-400/60 border-t-2 border-sky-200 rounded-b-lg flex flex-col items-center justify-between p-1">
+                                    <span class="text-xs text-amber-300 font-bold">200 mL!</span>
+                                    <div class="w-8 h-6 bg-slate-700 rounded-md border border-slate-500 text-[10px] text-center text-white">Batu</div>
+                                </div>
+                            </div>
+                            <span class="text-xs text-amber-300 font-bold mt-2">Air Naik!</span>
+                        </div>
+                    </div>
+                `;
+            } else if (type === 'cotton-iron-simulation') {
+                container.innerHTML = `
+                    <div class="flex items-center justify-center gap-8 w-full">
+                        <div class="flex flex-col items-center">
+                            <div class="w-28 h-24 bg-slate-200/20 border-2 border-dashed border-slate-300 rounded-2xl flex items-center justify-center text-4xl shadow-md">
+                                ☁️
+                            </div>
+                            <span class="text-xs text-amber-300 font-bold mt-2">1 kg Kapas</span>
+                            <span class="text-[10px] text-slate-400">Volume RAKSASA</span>
+                        </div>
+                        <div class="text-xl font-game text-amber-400">SAMA BERAT</div>
+                        <div class="flex flex-col items-center">
+                            <div class="w-14 h-14 bg-slate-700 border-2 border-slate-500 rounded-xl flex items-center justify-center text-2xl shadow-md">
+                                ⬛
+                            </div>
+                            <span class="text-xs text-amber-300 font-bold mt-2">1 kg Besi</span>
+                            <span class="text-[10px] text-slate-400">Volume Kecil</span>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function selectOption(isCorrect, explanationText) {
+            const overlay = document.getElementById('feedback-overlay');
+            const title = document.getElementById('feedback-title');
+            const icon = document.getElementById('feedback-icon');
+            const text = document.getElementById('feedback-text');
+            const btn = document.getElementById('next-stage-btn');
+
+            overlay.classList.remove('hidden');
+
+            if (isCorrect) {
+                playSound('correct');
+                score += 20;
+                updateScoreUI();
+
+                // Trigger mini confetti burst
+                confetti({
+                    particleCount: 40,
+                    spread: 60,
+                    origin: { y: 0.6 }
+                });
+
+                icon.innerText = "🎉";
+                title.innerText = "Luar Biasa! Jawaban Benar!";
+                title.className = "font-game text-2xl sm:text-3xl text-emerald-400 mb-2";
+                text.innerText = explanationText;
+                btn.className = "btn-bounce bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-game text-lg px-8 py-3 rounded-xl shadow-lg flex items-center gap-2";
+            } else {
+                playSound('wrong');
+                icon.innerText = "💡";
+                title.innerText = "Hampir Benar, Ayo Coba Pahami!";
+                title.className = "font-game text-2xl sm:text-3xl text-amber-400 mb-2";
+                text.innerText = "Jangan berkecil hati! " + explanationText;
+                btn.className = "btn-bounce bg-amber-500 hover:bg-amber-400 text-slate-950 font-game text-lg px-8 py-3 rounded-xl shadow-lg flex items-center gap-2";
+            }
+        }
+
+        function nextStage() {
+            playSound('click');
+            currentStage++;
+            if (currentStage < stages.length) {
+                loadStage(currentStage);
+            } else {
+                showEndScreen();
+            }
+        }
+
+        function updateScoreUI() {
+            document.getElementById('score-display').innerText = score;
+        }
+
+        function showEndScreen() {
+            playSound('win');
+            document.getElementById('play-screen').classList.add('hidden');
+            document.getElementById('end-screen').classList.remove('hidden');
+
+            document.getElementById('final-score').innerText = score;
+
+            // Big victory confetti explosion
+            confetti({
+                particleCount: 120,
+                spread: 100,
+                origin: { y: 0.5 }
+            });
+
+            const rating = document.getElementById('star-rating');
+            const badgeTitle = document.getElementById('final-badge-title');
+            const verdict = document.getElementById('final-verdict');
+
+            if (score >= 80) {
+                rating.innerHTML = `<i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>`;
+                badgeTitle.innerText = "DETEKTIF MASTER MATERI 🕵️‍♂️✨";
+                verdict.innerText = "Luar biasa! Kamu menguasai konsep Materi, Massa, & Volume!";
+            } else if (score >= 60) {
+                rating.innerHTML = `<i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i>`;
+                badgeTitle.innerText = "DETEKTIF HEBAT 🌟";
+                verdict.innerText = "Kerja bagus! Sedikit lagi mencapai skor sempurna.";
+            } else {
+                rating.innerHTML = `<i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i>`;
+                badgeTitle.innerText = "ASISTEN DETEKTIF CILIK 🔍";
+                verdict.innerText = "Ayo coba lagi untuk makin mahir!";
+            }
+        }
+
+        function restartGame() {
+            startGame();
+        }
+    </script>
+</body>
+</html>
